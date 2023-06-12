@@ -316,9 +316,59 @@ php artisan migrate:rollback
 ```php
 php artisan migrate:rollback –step=2 
 ```
+Глава 7. Модели
+```php
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+class Service extends Model
+{
+}
+```
 
 ```php
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+class Service extends Model
+{
+	protected $table = ‘custom_table’;
+}
+```
 
+```php
+class Service extends Model
+{
+   protected $fillable = [
+       'title',
+       'code'
+   ];
+}
+
+```
+
+```php
+$user->create(request()->all());
+```
+Глава 7.1. QueryBuilder
+```php
+$users = User::query()->where(‘active’, true)->where(‘banned’, false)
+```
+
+```php
+SELECT * FROM users WHERE active = 1 AND banned = 0;
+```
+
+```php
+$user = User::query()->where(‘active’, true)->where(‘banned’, false)->first()
+```
+
+```php
+$users = User::query()->where(‘active’, true)->where(‘banned’, false)->get()
+```
+Глава 7.2. Collections
+```php
+$users->sortBy(‘name’)->filter(fn($user) => $user->id > 1)
 ```
 
 ```php
@@ -332,7 +382,6 @@ php artisan migrate:rollback –step=2
 ```php
 
 ```
-
 
 
 
