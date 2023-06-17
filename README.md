@@ -950,6 +950,293 @@ $comments = Comment::query()->with(‘author’)->get();
 ```
 
 ```php
+$post = Post::query()->with(‘comments.author’)->where(‘id’, 1)->first();
+```
+
+```php
+$post->load(‘comments.author’);
+```
+8.10. QueryBuilder для отношений
+```php
+$posts = Post::has('comments')->get();
+
+```
+
+```php
+$posts = Post::whereHas('comments', function (Builder $query) {
+   $query->where('content', 'like', 'code%');
+})->get();
+```
+
+```php
+$posts = Post::whereRelation('comments', 'is_approved', false)->get();
+
+```
+8.11. Агрегатные функции для отношений
+```php
+$posts = Post::withCount('comments')->get();
+
+```
+
+```php
+foreach ($posts as $post) {
+   echo $post->comments_count;
+}
+
+```
+
+```php
+$posts = Post::withMax('comments', 'likes')->get();
+foreach ($posts as $post) {
+   echo $post->comments_max_likes;
+}
+
+```
+
+```php
+$posts = Post::withAvg('comments', 'votes')->get();
+foreach ($posts as $post) {
+   echo $post->comments_avg_votes;
+}
+
+$posts = Post::withSum('comments', 'votes')->get();
+foreach ($posts as $post) {
+   echo $post->comments_sum_votes;
+}
+
+```
+9.1. Mutators/Accessors
+```php
+class User extends Model
+{
+   /**
+    * Get the user's first name.
+    *
+    * @return \Illuminate\Database\Eloquent\Casts\Attribute
+    */
+   protected function phone(): Attribute
+   {
+       return Attribute::make(
+           get: fn ($value) => ‘+’ . $value,
+       );
+   }
+}
+
+```
+
+```php
+class User extends Model
+{
+   /**
+    * Get the user's first name.
+    *
+    * @return \Illuminate\Database\Eloquent\Casts\Attribute
+    */
+   protected function name(): Attribute
+   {
+       return Attribute::make(
+           get: fn () => $this->first_name . “ ” . $this->last_name,
+       );
+   }
+}
+
+```
+
+```php
+class User extends Model
+{
+   /**
+    * Get the user's first name.
+    *
+    * @return \Illuminate\Database\Eloquent\Casts\Attribute
+    */
+   protected function phone(): Attribute
+   {
+       return Attribute::make(
+           set: fn ($value) => trim(preg_replace('/^1|\D/', "", $value)),
+       );
+   }
+}
+
+```
+
+```php
+return Attribute::make(
+		get: fn ($value) => ‘+’ . $value,
+           set: fn ($value) => trim(preg_replace('/^1|\D/', "", $value)),
+       );
+
+```
+9.2. Casts
+```php
+class User extends Model
+{
+   /**
+    * The attributes that should be cast.
+    *
+    * @var array
+    */
+   protected $casts = [
+       'is_admin' => 'boolean',
+   ];
+}
+
+```
+
+```php
+class User extends Model
+{
+   /**
+    * The attributes that should be cast.
+    *
+    * @var array
+    */
+   protected $casts = [
+       'images' => 'collection',
+   ];
+}
+
+```
+
+```php
+php artisan make:cast PhoneCast
+```
+
+```php
+namespace App\Casts;
+use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+class PhoneCast implements CastsAttributes
+{
+   /**
+    * Cast the given value.
+    *
+    * @param  \Illuminate\Database\Eloquent\Model  $model
+    * @param  string  $key
+    * @param  mixed  $value
+    * @param  array  $attributes
+    * @return array
+    */
+   public function get($model, $key, $value, $attributes)
+   {
+       return ‘+’ . $value;
+   }
+ 
+   /**
+    * Prepare the given value for storage.
+    *
+    * @param  \Illuminate\Database\Eloquent\Model  $model
+    * @param  string  $key
+    * @param  array  $value
+    * @param  array  $attributes
+    * @return string
+    */
+   public function set($model, $key, $value, $attributes)
+   {
+       return trim(preg_replace('/^1|\D/', "", $value));
+   }
+}
+
+```
+
+```php
+use App\Casts\PhoneCast;
+class User extends Model
+{
+   /**
+    * The attributes that should be cast.
+    *
+    * @var array
+    */
+   protected $casts = [
+       'phone' => PhoneCast::class,
+   ];
+}
+
+```
+Глава 10. Scopes
+```php
+$posts = Post::query()->where(‘active’, true)->where(‘is_moderated’, true)->where(‘banned’, false)->get()
+
+```
+
+```php
+$posts = Post::query()->active()->get()
+```
+
+```php
+public function activeScope(Builder $query)
+{
+	$query->where(‘active’, true)->where(‘is_moderated’, true)->where(‘banned’, false);
+}
+
+```
+11.1 View
+```php
+Route::get('/’', function(){ 
+return view('home’');
+});
+
+```
+
+```php
+Route::get('/’', function(){ 
+return view('pages.home’');
+});
+
+```
+
+```php
+return view('home’', ['posts' => Post::query()->active()->get()]);
+
+```
+
+```php
+<html>
+<head>
+   <title>Cutcode here!</title>
+</head>
+<body>
+<ul>
+@foreach($posts as $post)
+<li>{{  $post->name }}</li>
+@endforeach
+</ul>
+</body>
+</html>
+
+```
+
+```php
+@if(true)
+@endif 
+
+@auth 
+@endauth 
+
+```
+Глава 12. Контроллер
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
 
 ```
 
