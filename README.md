@@ -1217,6 +1217,984 @@ return view('home’', ['posts' => Post::query()->active()->get()]);
 Глава 12. Контроллер
 
 ```php
+php artisan make:controller HomeController
+```
+
+```php
+<?php
+namespace App\Http\Controllers;
+use Illuminate\Http\Request;
+class HomeController extends Controller
+{
+   //
+}
+
+```
+
+```php
+<?php
+namespace App\Http\Controllers;
+use Illuminate\Http\Request;
+class HomeController extends Controller
+{
+   public function index()
+	{
+		return view(‘home’, [‘posts’ => Post::query()->active()->get()])
+}
+}
+
+```
+
+```php
+Route::get('/’', [HomeController:class, ‘index’]);
+
+```
+Глава 13. Service Container
+```php
+public function indexPage(Request $request)
+{
+}
+
+```
+
+```php
+public function indexPage(User $user)
+{
+}
+
+```
+
+```php
+class Car {
+	public function __construct(
+       protected string $color
+   	) {}
+
+}
+
+```
+
+```php
+public function indexPage(Car $car)
+{
+}
+
+```
+
+```php
+public function boot(): void
+{
+   $this->app->instance(Car::class, new Car(‘white’));
+}
+
+```
+
+```php
+$app->singleton(
+   Illuminate\Contracts\Http\Kernel::class,
+   App\Http\Kernel::class
+);
+
+```
+
+```php
+public function indexPage(Illuminate\Contracts\Http\Kernel $kernel)
+{
+}
+
+```
+
+```php
+public function boot(): void
+{
+   $this->app->bind(MessengersInterface::class, Telegram::class);
+}
+
+```
+
+```php
+public function indexPage(MessengersInterface $messenger)
+{
+}
+
+```
+
+```php
+   $this->app->bind(MessengersInterface::class, Slack::class);
+
+```
+
+```php
+public function indexPage()
+{
+	$messenger = app(MessengersInterface::class);
+}
+
+```
+Глава 13. Два брата Request и Response
+```php
+<?php
+namespace App\Http\Controllers;
+use Illuminate\Http\Request;
+class HomeController extends Controller
+{
+   public function index(Request $request)
+	{
+		dump($request->all());
+		// все параметры реквеста
+                // получим метод запроса GET или POST PUT DELETE и остальные	
+		dump($request->method());
+                // Читаем куку	
+		dump($request->cookie(‘name’));
+                // Берем файл	
+		dump($request->file(‘file’));
+                // Заголовок	
+		dump($request->header(‘name’));
+		return view(‘home’, [‘posts’ => Post::query()->active()->get()])
+}
+}
+
+```
+
+```php
+return redirect(‘/’);
+```
+
+```php
+return response()->json([‘data’ => ‘’]);
+```
+Глава 14. Валидация
+```php
+<?php
+
+
+namespace App\Http\Controllers;
+
+
+use Illuminate\Http\Request;
+
+
+class HomeController extends Controller
+{
+   public function index(Request $request)
+	{
+	      $validatedData = $request->validate([
+              'title' => ['required', 'unique:posts', 'max:255'],
+              'body' => ['required'],
+         ]);
+        }
+}
+
+```
+
+```php
+<input type=”text” name=”title” />
+@error(‘title’)
+{{ $message }}
+@enderror
+
+```
+
+```php
+php artisan make:request ContactForm
+
+```
+
+```php
+<?php
+namespace App\Http\Requests;
+use Illuminate\Foundation\Http\FormRequest;
+class ContactForm extends FormRequest
+{
+   /**
+    * Determine if the user is authorized to make this request.
+    *
+    * @return bool
+    */
+   public function authorize()
+   {
+       return true;
+   }
+
+   /**
+    * Get the validation rules that apply to the request.
+    *
+    * @return array<string, mixed>
+    */
+   public function rules()
+   {
+       return [
+           'title' => ['required', 'unique:posts', 'max:255'],
+   'body' => ['required'],
+       ];
+   }
+}
+
+```
+
+```php
+<?php
+namespace App\Http\Controllers;
+use App\Http\Request\ContactForm;
+class HomeController extends Controller
+{
+   public function index(ContactForm $request)
+	{}
+}
+
+```
+Глава 15. Безопасность
+```php
+$user[‘about’] = $_POST['about'];
+$query = UPDATE users SET about  = ‘$user[‘about’]’;
+
+```
+
+```php
+“test” AND is_admin = “1’” 
+```
+
+```php
+$query = UPDATE users SET about  = ‘$user[‘about’]’;
+// UPDATE users SET about  = ‘test’ AND is_admin = 1
+```
+
+```php
+<script>alert('hello, I just hacked this page');</script>
+
+```
+
+```php
+{{ $user->about }}
+```
+
+```php
+{!! $user->about !!} 
+```
+
+```php
+<form action="https://your-application.com/user/email" method="POST">
+   <input type="email" value="malicious-email@example.com">
+</form>
+
+```
+
+```php
+<form method="POST" action="/profile">
+   <!-- Выведет hidden input с токеном как и пример ниже ... -->
+   @csrf
+ 
+   <!-- Тоже самое с помощью токена ... -->
+   <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+</form>
+
+```
+
+```php
+session()->put(‘name’, ‘value’); // записали значение в сессию с ключом name
+session()->get(‘name’); // получили значение value
+if(session()->has(‘name’)) {} // проверили есть ли в сессиях такие данные 
+
+```
+
+```php
+if(auth()->attempt([‘email’ => request(‘email’), ‘password’ => request(‘password’)])) {
+}
+
+```
+
+```php
+User::query()->create([
+	‘email’ => request(‘email’),
+	‘password’ => Hash::make(‘password’)
+])
+
+```
+
+```php
+auth()->logout()
+
+```
+
+```php
+auth()->login($user)
+
+```
+
+```php
+Auth::loginUsingId(1);
+```
+
+```php
+Route::get(‘/profile’, ProfileController::class)->middleware(‘auth’);
+
+```
+
+```php
+Route::get(‘/profile’, ProfileController::class)->middleware(‘guest’);
+```
+
+```php
+@auth 
+Я {{ auth()->user()->name }} и мой id - {{ auth()->id() }}
+@endauth
+
+@guest 
+А здесь будет кнопка “Войти”
+@endguest
+
+```
+
+```php
+php artisan make:controller HomeController
+```
+
+```php
+php artisan make:cast PhoneCast
+php artisan make:request ContactFormRequest
+
+```
+
+```php
+php artisan serve
+```
+
+```php
+php artisan migrate
+```
+
+```php
+php artisan make:command CreateTestUse
+```
+
+```php
+<?php
+namespace App\Console\Commands;
+use Illuminate\Console\Command;
+class CreateTestUser extends Command
+{
+   /**
+    * The name and signature of the console command.
+    *
+    * @var string
+    */
+   protected $signature = 'command:name';
+
+	/**
+    * The console command description.
+    *
+    * @var string
+    */
+   protected $description = 'Command description';
+
+   /**
+    * Execute the console command.
+    *
+    * @return int
+    */
+   public function handle()
+   {
+       return Command::SUCCESS;
+   }
+}
+
+```
+
+```php
+php artisan command:name 
+```
+
+```php
+<?php
+
+
+namespace App\Console\Commands;
+
+
+use Illuminate\Console\Command;
+
+
+class CreateTestUser extends Command
+{
+   /**
+    * The name and signature of the console command.
+    *
+    * @var string
+    */
+   protected $signature = 'create:user';
+
+   /**
+    * The console command description.
+    *
+    * @var string
+    */
+   protected $description = 'Create test user';
+
+   /**
+    * Execute the console command.
+    *
+    * @return int
+    */
+   public function handle()
+   {
+	User::create([
+	‘email’ => ‘test@example.com’
+        ]);
+       return Command::SUCCESS;
+   }
+}
+
+```
+
+```php
+php artisan create:user
+```
+Глава 19. Сид и нэнси? Почти! Сиды и Фабрики
+```php
+namespace Database\Seeders;
+
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+   /**
+    * Seed the application's database.
+    *
+    * @return void
+    */
+   public function run()
+   {
+       // \App\Models\User::factory(10)->create();
+   }
+}
+
+```
+
+```php
+class DatabaseSeeder extends Seeder
+{
+   /**
+    * Seed the application's database.
+    *
+    * @return void
+    */
+   public function run()
+   {
+       OrderStatus::query()->create([‘name’ => ‘new’]);
+   }
+}
+
+```
+
+```php
+php artisan migrate –seed
+```
+
+```php
+php artisan db:seed
+```
+
+```php
+php artisan make:seeder OrderStatusSeeder
+
+```
+
+```php
+<?php
+
+
+namespace Database\Seeders;
+
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+
+class OrderStatusSeeder extends Seeder
+{
+   /**
+    * Run the database seeds.
+    *
+    * @return void
+    */
+   public function run()
+   {
+       DB::table(‘order_statuses’)->insert([‘id’ => 1, ‘name’ => ‘Новый’]);
+       DB::table(‘order_statuses’)->insert([‘id’ => 2, ‘name’ => ‘В обработке’]);
+       DB::table(‘order_statuses’)->insert([‘id’ => 3, ‘name’ => ‘Подтвержден’]);
+       DB::table(‘order_statuses’)->insert([‘id’ => 4, ‘name’ => ‘Оплачен’]);
+   }
+}
+
+```
+
+```php
+public function run()
+{
+   $this->call([
+       OrderStatusSeeder::class,
+   ]);
+}
+
+```
+
+```php
+php artisan db:seed --class=OrderStatusSeeder
+```
+
+```php
+php artisan migrate —-seed --seeder=OrderStatusSeeder
+```
+
+```php
+<?php
+namespace Database\Factories;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
+
+/**
+* @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+*/
+class UserFactory extends Factory
+{
+   /**
+    * Define the model's default state.
+    *
+    * @return array<string, mixed>
+    */
+   public function definition()
+   {
+       return [
+           'name' => fake()->name(),
+           'email' => fake()->unique()->safeEmail(),
+           'email_verified_at' => now(),
+           'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+           'remember_token' => Str::random(10),
+       ];
+   }
+
+   /**
+    * Indicate that the model's email address should be unverified.
+    *
+    * @return static
+    */
+   public function unverified()
+   {
+       return $this->state(fn (array $attributes) => [
+           'email_verified_at' => null,
+       ]);
+   }
+}
+
+```
+
+```php
+<?php
+namespace Database\Seeders;
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+   /**
+    * Seed the application's database.
+    *
+    * @return void
+    */
+   public function run()
+   {
+       \App\Models\User::factory(100)->create();
+   }
+}
+
+```
+
+```php
+php artisan db:seed
+```
+Глава 20. Тесты
+```php
+php artisan make:test ArticlesTest
+```
+
+```php
+<?php
+namespace Tests\Feature;
+use Illuminate\Foundation\Testing\RefreshDatabase; use Illuminate\Foundation\Testing\WithFaker;
+use Tests\TestCase;
+class ArticlesTest extends TestCase {
+   /**
+     * A basic feature test example.
+     *
+     * @return void
+     */
+
+public function testExample() {
+       $response = $this->get('/');
+        $response->assertStatus(200);
+
+} }
+php artisan test --filter ArticlestTest
+```
+
+```php
+OK (1 test, 1 assertion)
+```
+
+```php
+public function testArticlesPage(){ 
+$this->get('/articles)
+          ->assertSee('All articles');
+}
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
+
+```
+
+```php
 
 ```
 
